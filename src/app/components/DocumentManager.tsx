@@ -2,6 +2,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { FiUpload, FiFile, FiDownload, FiTrash2, FiFolder, FiImage, FiFileText, FiAlertTriangle, FiInfo } from 'react-icons/fi';
+import { useNotifications } from '../hooks/useNotifications';
 
 interface ProjectFile {
   _id: string;
@@ -26,6 +27,7 @@ export default function DocumentManager({ projectId, isOwner }: DocumentManagerP
   const [documents, setDocuments] = useState<ProjectFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { emitAction } = useNotifications();
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; document: ProjectFile | null }>({
     show: false,
     document: null
@@ -77,7 +79,19 @@ export default function DocumentManager({ projectId, isOwner }: DocumentManagerP
         event.target.value = '';
         alert(`✅ "${newDocument.name}" a été uploadé avec succès !`);
         
-       
+        // Émettre une action SSE
+        emitAction({
+          type: 'document_uploaded',
+          title: 'Document téléversé',
+          message: `Le document "${newDocument.name}" a été téléversé avec succès`,
+          metadata: {
+            documentId: newDocument._id,
+            documentName: newDocument.name,
+            projectId: projectId,
+            uploadedBy: session?.user?.name || 'Utilisateur'
+          }
+        });
+        
       } else {
         const error = await response.json();
         alert(`❌ Erreur: ${error.error}`);
@@ -111,7 +125,19 @@ export default function DocumentManager({ projectId, isOwner }: DocumentManagerP
         
         alert(`🗑️ "${documentName}" a été supprimé avec succès.`);
         
-      
+        // Émettre une action SSE
+        emitAction({
+          type: 'document_deleted',
+          title: 'Document supprimé',
+          message: `Le document "${documentName}" a été supprimé`,
+          metadata: {
+            documentId: documentId,
+            documentName: documentName,
+            projectId: projectId,
+            deletedBy: session?.user?.name || 'Utilisateur'
+          }
+        });
+        
       } else {
         const error = await response.json();
         alert(`❌ Erreur lors de la suppression: ${error.error}`);
@@ -152,6 +178,19 @@ export default function DocumentManager({ projectId, isOwner }: DocumentManagerP
       
       alert(`📥 Téléchargement de "${file.name}" commencé !`);
       
+      // Émettre une action SSE
+      emitAction({
+        type: 'document_downloaded',
+        title: 'Document téléchargé',
+        message: `Le document "${file.name}" a été téléchargé`,
+        metadata: {
+          documentId: file._id,
+          documentName: file.name,
+          projectId: projectId,
+          downloadedBy: session?.user?.name || 'Utilisateur'
+        }
+      });
+      
     } catch (error) {
       console.error('❌ Error downloading file:', error);
       alert(`❌ Erreur lors du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
@@ -190,7 +229,7 @@ export default function DocumentManager({ projectId, isOwner }: DocumentManagerP
 
   return (
     <>
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+      <div className="bg-white/70 rounded-2xl shadow-lg border border-white/20 p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-slate-900 flex items-center space-x-2">
             <FiFolder className="w-6 h-6 text-blue-500" />

@@ -13,6 +13,7 @@ import {
   FiSend,
   FiMessageCircle
 } from 'react-icons/fi';
+import { useNotifications } from '../hooks/useNotifications';
 
 interface InviteCollaboratorModalProps {
   projectId: string;
@@ -45,6 +46,7 @@ export default function InviteCollaboratorModal({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [customMessage, setCustomMessage] = useState('');
+  const { emitAction } = useNotifications();
 
   const getRoleInfo = (role: RoleType): RoleInfo => {
     const roleInfo: Record<RoleType, RoleInfo> = {
@@ -117,6 +119,21 @@ export default function InviteCollaboratorModal({
         setMessage('🎉 Invitation envoyée avec succès !');
         setEmail('');
         setCustomMessage('');
+        
+        // Émettre une action SSE
+        emitAction({
+          type: 'collaborator_invited',
+          title: 'Collaborateur invité',
+          message: `Une invitation a été envoyée à ${email.trim()} pour rejoindre le projet`,
+          metadata: {
+            projectId: projectId,
+            projectTitle: projectTitle,
+            invitedEmail: email.trim(),
+            role: role,
+            invitedBy: 'Vous'
+          }
+        });
+        
         setTimeout(() => {
           onInviteSent();
           onClose();
@@ -143,10 +160,9 @@ export default function InviteCollaboratorModal({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300"
+      className="fixed inset-0 flex items-center justify-center p-4 z-100 transition-opacity duration-300"
       onClick={handleOverlayClick}
     >
-      {/* Background avec effet glassmorphism */}
       <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-purple-500/10"></div>
       </div>

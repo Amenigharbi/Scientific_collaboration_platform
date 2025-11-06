@@ -1,10 +1,10 @@
-// app/api/research/route.ts - CORRIGÉ AVEC ZOD v3
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import { connectToDatabase } from '@/app/lib/mongodb';
 import ResearchProject from '@/app/models/ResearchProject';
 import Collaboration from '@/app/models/Collaboration';
+import User from '@/app/models/User'; // ✅ IMPORT AJOUTÉ
 import { z } from 'zod';
 
 const createProjectSchema = z.object({
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { 
           error: 'Données invalides', 
-          details: error.issues // ✅ CORRECTION: utiliser 'issues' au lieu de 'errors'
+          details: error.issues
         },
         { status: 400 }
       );
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   }
 }
 
-// Route GET - Version simplifiée sans collaborateurs
+// Route GET - Version corrigée
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -123,17 +123,22 @@ export async function GET(request: Request) {
 
     const collaborationProjectIds = userCollaborations.map(c => c.project);
 
-    // Requête simple sans populate problématique
+    // Requête avec populate corrigé
     const projects = await ResearchProject.find({
       $or: [
         { owner: session.user.id },
         { _id: { $in: collaborationProjectIds } }
       ]
     })
-    .populate('owner', 'name email affiliation')
+    .populate({
+      path: 'owner',
+      model: User, // ✅ SPÉCIFIER EXPLICITEMENT LE MODÈLE
+      select: 'name email affiliation'
+    })
     .sort({ updatedAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean(); // Utiliser lean() pour de meilleures performances
 
     // Compter le total
     const total = await ResearchProject.countDocuments({

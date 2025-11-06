@@ -67,11 +67,15 @@ export default function ProjectDetail() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+ const projectId = params?.id as string;
+
   useEffect(() => {
-    if (params.id) {
-      fetchProject(params.id as string);
+    if (projectId) {
+      fetchProject(projectId);
+    } else {
+      setLoading(false);
     }
-  }, [params.id]);
+  }, [projectId]);
 
   const fetchProject = async (projectId: string) => {
     try {
@@ -89,8 +93,9 @@ export default function ProjectDetail() {
     }
   };
 
-  const handleEdit = () => {
-    router.push(`/projects/edit/${params.id}`);
+   const handleEdit = () => {
+    if (!projectId) return;
+    router.push(`/projects/edit/${projectId}`);
   };
 
   const handleInvite = () => {
@@ -98,8 +103,10 @@ export default function ProjectDetail() {
     setShowMobileMenu(false);
   };
 
-  const handleInviteSent = () => {
-    fetchProject(params.id as string);
+   const handleInviteSent = () => {
+    if (projectId) {
+      fetchProject(projectId);
+    }
   };
 
   const confirmDelete = () => {
@@ -109,12 +116,12 @@ export default function ProjectDetail() {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/research/${params.id}`, {
+      if (!projectId) return;
+      const response = await fetch(`/api/research/${projectId}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        // Message de succès personnalisé
         localStorage.setItem('deleteSuccess', 'true');
         localStorage.setItem('deletedProjectTitle', project?.title || '');
         router.push('/dashboard');
@@ -277,7 +284,6 @@ export default function ProjectDetail() {
                     <span className="hidden sm:inline">Dashboard</span>
                   </button>
 
-                  {/* Centre de Notifications */}
                   <NotificationCenter />
 
                   <button
@@ -322,7 +328,6 @@ export default function ProjectDetail() {
 
                 {/* Actions Mobile */}
                 <div className="lg:hidden flex items-center space-x-2">
-                  {/* Bouton Dashboard Mobile */}
                   <button
                     onClick={() => router.push('/dashboard')}
                     className="flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50"
@@ -331,7 +336,6 @@ export default function ProjectDetail() {
                     <FiHome className="w-5 h-5" />
                   </button>
 
-                  {/* Centre de Notifications Mobile */}
                   <NotificationCenter />
 
                   <button
@@ -352,14 +356,14 @@ export default function ProjectDetail() {
                         <FiMoreVertical className="w-5 h-5" />
                       </button>
                       
-                      {showMobileMenu && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-40"
-                            onClick={() => setShowMobileMenu(false)}
-                          />
-                          
-                          <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 py-2 z-50 min-w-48 max-w-[calc(100vw-2rem)] transform transition-all duration-200">
+                    {showMobileMenu && (
+  <>
+    <div 
+      className="fixed inset-0 z-100"
+      onClick={() => setShowMobileMenu(false)}
+    />
+    
+    <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-100 min-w-48 max-w-[calc(100vw-2rem)] transform transition-all duration-200">
                             <button
                               onClick={() => {
                                 handleInvite();
@@ -428,18 +432,13 @@ export default function ProjectDetail() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Colonne principale (3/4 de largeur) */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Section Description */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className=" rounded-2xl shadow-lg border border-white/20 p-6">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Description détaillée</h2>
                 <p className="text-slate-700 leading-relaxed whitespace-pre-line">{project.description}</p>
               </div>
 
-              {/* Gestionnaire de Documents */}
               <DocumentManager projectId={project._id} isOwner={isOwner} />
-
-              {/* Timeline des Activités */}
               <ProjectTimeline projectId={project._id} />
 
               {/* Informations du Projet */}
@@ -508,9 +507,7 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            {/* Sidebar (1/4 de largeur) */}
             <div className="space-y-6">
-              {/* Propriétaire */}
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
                 <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
                   <FiUser className="w-5 h-5 text-blue-500" />
@@ -573,14 +570,12 @@ export default function ProjectDetail() {
                 </div>
               )}
 
-              {/* Chat Rapide */}
               <QuickChat projectId={project._id} />
             </div>
           </div>
         </main>
       </div>
 
-      {/* Modal de confirmation de suppression */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
@@ -632,7 +627,6 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      {/* Modal d'invitation */}
       {project && (
         <InviteCollaboratorModal
           projectId={project._id}

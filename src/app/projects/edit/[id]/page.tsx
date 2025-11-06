@@ -68,11 +68,17 @@ export default function EditProject() {
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Récupérer l'ID du projet de manière sécurisée
+  const projectId = params?.id as string;
+
   useEffect(() => {
-    if (params.id) {
-      fetchProject(params.id as string);
+    if (projectId) {
+      fetchProject(projectId);
+    } else {
+      setLoading(false);
+      setErrors({ fetch: 'ID du projet non trouvé' });
     }
-  }, [params.id]);
+  }, [projectId]);
 
   const fetchProject = async (projectId: string) => {
     try {
@@ -116,7 +122,7 @@ export default function EditProject() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/research/${params.id}`, {
+      const response = await fetch(`/api/research/${projectId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +138,7 @@ export default function EditProject() {
       });
 
       if (response.ok) {
-        router.push(`/projects/${params.id}?updated=true`);
+        router.push(`/projects/${projectId}?updated=true`);
       } else {
         const error = await response.json();
         setErrors({ submit: error.error });
@@ -237,6 +243,27 @@ export default function EditProject() {
     );
   }
 
+  // Gérer le cas où l'ID n'est pas trouvé
+  if (!projectId) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-8 max-w-md">
+          <div className="w-16 h-16 bg-linear-to-r from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiBook className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Projet non trouvé</h2>
+          <p className="text-gray-600 mb-6">Le projet que vous essayez de modifier n'existe pas.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+          >
+            Retour au Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const statusInfo = getStatusInfo(formData.status);
   const visibilityInfo = getVisibilityInfo(formData.visibility);
 
@@ -246,7 +273,7 @@ export default function EditProject() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => router.push(`/projects/${params.id}`)}
+            onClick={() => router.push(`/projects/${projectId}`)}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors p-2 rounded-lg hover:bg-white/50"
           >
             <FiArrowLeft className="w-5 h-5" />
@@ -467,7 +494,7 @@ export default function EditProject() {
                 <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => router.push(`/projects/${params.id}`)}
+                    onClick={() => router.push(`/projects/${projectId}`)}
                     className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                   >
                     Annuler
