@@ -6,6 +6,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { connectToDatabase } from '@/app/lib/mongodb';
 import Document from '@/app/models/Document';
+import { ActivityHelpers } from '@/app/lib/activity-utils';
 
 function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -52,7 +53,6 @@ export async function POST(request: NextRequest) {
 
     await connectToDatabase();
 
-    // CORRECTION : URL correcte pour le téléchargement
     const documentData = {
       name: file.name,
       fileName: fileName,
@@ -60,10 +60,19 @@ export async function POST(request: NextRequest) {
       type: file.type,
       projectId: projectId,
       uploadedBy: session.user.id,
-      url: `/api/documents/download/${projectId}/${fileName}`, // URL corrigée
+      url: `/api/documents/download/${projectId}/${fileName}`,
     };
 
     const document = await Document.create(documentData);
+
+    await ActivityHelpers.fileUploaded(
+      projectId,
+      {
+        name: session.user?.name,
+        email: session.user?.email
+      },
+      file.name
+    );
 
     return NextResponse.json({
       _id: document._id,

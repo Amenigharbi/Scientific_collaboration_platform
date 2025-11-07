@@ -59,18 +59,6 @@ interface DashboardStats {
   activeProjects: number;
   totalCollaborations: number;
   pendingInvitations: number;
-  recentActivity: number;
-}
-
-interface Activity {
-  _id: string;
-  type: string;
-  description: string;
-  userId: {
-    name: string;
-    email: string;
-  };
-  createdAt: string;
 }
 
 export default function Dashboard() {
@@ -90,10 +78,7 @@ export default function Dashboard() {
     activeProjects: 0,
     totalCollaborations: 0,
     pendingInvitations: 0,
-    recentActivity: 0
   });
-  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -101,25 +86,17 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Charger les projets
       const projectsResponse = await fetch('/api/research');
       const projectsData = await projectsResponse.json();
       const projectsList = projectsData.projects || [];
       setProjects(projectsList);
 
-      // Charger les collaborations
       const collabResponse = await fetch('/api/collaborations?type=received');
       const collabData = await collabResponse.json();
       const collaborationsList = collabData.collaborations || [];
       setCollaborations(collaborationsList);
 
-      // Calculer les statistiques
       calculateStats(projectsList, collaborationsList);
-
-      // Charger les activités récentes
-      await fetchRecentActivities();
-
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -130,51 +107,16 @@ export default function Dashboard() {
   const calculateStats = (projects: Project[], collaborations: Collaboration[]) => {
     const activeProjects = projects.filter(p => p.status === 'ACTIVE').length;
     const pendingInvitations = collaborations.filter(c => c.status === 'PENDING').length;
-    
-    // Calcul de l'activité récente basée sur les projets modifiés
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const recentActivity = projects.filter(p => 
-      new Date(p.updatedAt) > oneWeekAgo || 
-      new Date(p.createdAt) > oneWeekAgo
-    ).length;
 
     setStats({
       totalProjects: projects.length,
       activeProjects,
       totalCollaborations: collaborations.length,
-      pendingInvitations,
-      recentActivity
+      pendingInvitations
     });
   };
 
-  const fetchRecentActivities = async () => {
-    try {
-      // Simulation d'activités récentes basées sur les projets
-      // À remplacer par un appel API réel si disponible
-      const simulatedActivities: Activity[] = projects
-        .filter(project => {
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          return new Date(project.createdAt) > oneWeekAgo;
-        })
-        .slice(0, 5)
-        .map(project => ({
-          _id: project._id,
-          type: 'PROJECT_CREATED',
-          description: `a créé le projet "${project.title}"`,
-          userId: {
-            name: project.owner.name,
-            email: project.owner.email
-          },
-          createdAt: project.createdAt
-        }));
 
-      setRecentActivities(simulatedActivities);
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-    }
-  };
 
   const handleAcceptCollaboration = async (collabId: string) => {
     try {
@@ -538,33 +480,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="mt-8 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
-              <div className="px-6 py-4 border-b border-white/20">
-                <h2 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
-                  <FiClock className="w-5 h-5 text-slate-500" />
-                  <span>Activité Récente Détailée</span>
-                </h2>
-              </div>
-              <div className="p-6">
-                {recentActivities.length === 0 ? (
-                  <p className="text-slate-500 text-center py-4">Aucune activité récente</p>
-                ) : (
-                  <div className="space-y-4">
-                    {recentActivities.map((activity) => (
-                      <div key={activity._id} className="flex items-start space-x-3 p-3 bg-slate-50/50 rounded-lg">
-                        <div className={`w-2 h-2 mt-2 rounded-full ${getActivityColor(activity.type)}`}></div>
-                        <div className="flex-1">
-                          <p className="text-sm text-slate-900">{activity.description}</p>
-                          <p className="text-xs text-slate-500">
-                            {activity.userId.name} • {new Date(activity.createdAt).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </>
         ) : activeTab === 'projects' ? (
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">

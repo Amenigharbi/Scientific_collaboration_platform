@@ -4,8 +4,9 @@ import { authOptions } from '@/app/lib/auth';
 import { connectToDatabase } from '@/app/lib/mongodb';
 import ResearchProject from '@/app/models/ResearchProject';
 import Collaboration from '@/app/models/Collaboration';
-import User from '@/app/models/User'; // ✅ IMPORT AJOUTÉ
+import User from '@/app/models/User'; 
 import { z } from 'zod';
+import { ActivityHelpers } from '@/app/lib/activity-utils';
 
 const createProjectSchema = z.object({
   title: z.string().min(1, "Le titre est requis").max(255, "Le titre est trop long"),
@@ -42,7 +43,6 @@ export async function POST(request: Request) {
       owner: session.user.id,
     });
 
-    // Créer la version initiale
     const ProjectVersion = (await import('@/app/models/ProjectVersion')).default;
     await ProjectVersion.create({
       version: project.currentVersion,
@@ -56,7 +56,16 @@ export async function POST(request: Request) {
       author: session.user.id,
     });
 
-    // Peupler les données de l'owner
+    // ✅ AJOUT DE L'ACTIVITÉ - Projet créé
+    await ActivityHelpers.projectCreated(
+      project._id.toString(),
+      {
+        name: session.user?.name,
+        email: session.user?.email
+      },
+      project.title
+    );
+
     await project.populate('owner', 'name email affiliation');
 
     return NextResponse.json(

@@ -42,7 +42,6 @@ export async function GET(
 
     await connectToDatabase();
 
-    // Vérifier les permissions - RECHERCHE DES COLLABORATIONS SÉPARÉMENT
     const collaboration = await Collaboration.findOne({
       project: id,
       $or: [
@@ -67,7 +66,6 @@ export async function GET(
       );
     }
 
-    // RÉCUPÉRER LES COLLABORATIONS SÉPARÉMENT
     const collaborations = await Collaboration.find({
       project: id,
       status: { $in: ['PENDING', 'ACTIVE'] }
@@ -75,7 +73,6 @@ export async function GET(
     .populate('user', 'name email affiliation')
     .populate('invitedBy', 'name email');
 
-    // RÉCUPÉRER LES VERSIONS SÉPARÉMENT
     const ProjectVersion = (await import('@/app/models/ProjectVersion')).default;
     const versions = await ProjectVersion.find({
       project: id
@@ -84,7 +81,6 @@ export async function GET(
     .sort({ createdAt: -1 })
     .limit(10);
 
-    // COMBINER LES DONNÉES
     const projectWithDetails = {
       ...project.toObject(),
       collaborators: collaborations,
