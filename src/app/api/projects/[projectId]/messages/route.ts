@@ -1,4 +1,3 @@
-// app/api/projects/[projectId]/messages/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -69,7 +68,6 @@ export async function POST(
       );
     }
 
-    // ✅ Await les params
     const { projectId } = await params;
 
     if (!projectId) {

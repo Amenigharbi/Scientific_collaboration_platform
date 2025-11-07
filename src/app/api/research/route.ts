@@ -56,7 +56,6 @@ export async function POST(request: Request) {
       author: session.user.id,
     });
 
-    // ✅ AJOUT DE L'ACTIVITÉ - Projet créé
     await ActivityHelpers.projectCreated(
       project._id.toString(),
       {
@@ -103,7 +102,6 @@ export async function POST(request: Request) {
   }
 }
 
-// Route GET - Version corrigée
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -122,7 +120,6 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // Trouver les collaborations actives de l'utilisateur
     const userCollaborations = await Collaboration.find({
       $or: [
         { user: session.user.id, status: 'ACTIVE' },
@@ -132,7 +129,6 @@ export async function GET(request: Request) {
 
     const collaborationProjectIds = userCollaborations.map(c => c.project);
 
-    // Requête avec populate corrigé
     const projects = await ResearchProject.find({
       $or: [
         { owner: session.user.id },
@@ -141,15 +137,15 @@ export async function GET(request: Request) {
     })
     .populate({
       path: 'owner',
-      model: User, // ✅ SPÉCIFIER EXPLICITEMENT LE MODÈLE
+      model: User, 
       select: 'name email affiliation'
     })
     .sort({ updatedAt: -1 })
     .skip(skip)
     .limit(limit)
-    .lean(); // Utiliser lean() pour de meilleures performances
+    .lean(); 
 
-    // Compter le total
+
     const total = await ResearchProject.countDocuments({
       $or: [
         { owner: session.user.id },

@@ -119,7 +119,6 @@ export async function POST(request: Request) {
   }
 }
 
-// app/api/collaborations/route.ts - AJOUTER LA MÉTHODE GET
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
