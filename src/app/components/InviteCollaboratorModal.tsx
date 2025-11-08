@@ -285,7 +285,6 @@ export default function InviteCollaboratorModal({
             </div>
           </div>
 
-          {/* Custom Message compact */}
           <div>
             <label htmlFor="customMessage" className="block text-sm font-medium text-white mb-2">
               Message (optionnel)
