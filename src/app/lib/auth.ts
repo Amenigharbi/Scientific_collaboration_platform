@@ -1,4 +1,3 @@
-// app/lib/auth.ts - Version simplifiée
 import { NextAuthOptions } from "next-auth";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import GoogleProvider from "next-auth/providers/google";

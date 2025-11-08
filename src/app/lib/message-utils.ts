@@ -62,7 +62,6 @@ export async function createMessageInDB(messageData: CreateMessageData): Promise
   try {
     await client.connect();
     
-    // Nettoyage et validation des données utilisateur
     const userName = messageData.user.name || 'Utilisateur inconnu';
     const userEmail = messageData.user.email || 'unknown@example.com';
     const userAvatar = messageData.user.avatar || undefined;

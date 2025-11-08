@@ -1,4 +1,3 @@
-// app/lib/api-utils.ts
 import { connectToDatabase } from './mongodb';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';

@@ -1,4 +1,3 @@
-// lib/activity-utils.ts
 import { MongoClient, ObjectId } from 'mongodb';
 
 export interface Activity {
