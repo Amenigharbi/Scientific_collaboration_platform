@@ -2,7 +2,6 @@ import Notification, { INotification } from '@/app/models/Notification';
 import { connectToDatabase } from '@/app/lib/mongodb';
 import { Types } from 'mongoose';
 
-// Interface pour la réponse des notifications
 interface NotificationResponse {
   _id: string;
   userId: string;
@@ -73,9 +72,7 @@ export class NotificationService {
       read: false 
     });
 
-    // Transformer les données pour le client
     const transformedNotifications: NotificationResponse[] = notifications.map(notif => {
-      // Gérer le typage des populations
       const sender = notif.metadata?.senderId as any;
       const project = notif.metadata?.projectId as any;
 
@@ -108,7 +105,6 @@ export class NotificationService {
     };
   }
 
-  // Marquer une notification comme lue
   static async markAsRead(notificationId: string, userId: string): Promise<INotification | null> {
     await connectToDatabase();
     
@@ -122,7 +118,6 @@ export class NotificationService {
     );
   }
 
-  // Marquer toutes les notifications comme lues
   static async markAllAsRead(userId: string): Promise<{ modifiedCount: number }> {
     await connectToDatabase();
     
@@ -134,7 +129,6 @@ export class NotificationService {
     return { modifiedCount: result.modifiedCount || 0 };
   }
 
-  // Supprimer une notification
   static async deleteNotification(notificationId: string, userId: string): Promise<INotification | null> {
     await connectToDatabase();
     
@@ -144,7 +138,6 @@ export class NotificationService {
     });
   }
 
-  // Récupérer le nombre de notifications non lues
   static async getUnreadCount(userId: string): Promise<number> {
     await connectToDatabase();
     
@@ -154,7 +147,6 @@ export class NotificationService {
     });
   }
 
-  // Créer et émettre une notification (pour les invitations, messages, etc.)
   static async createAndEmitNotification(
     notificationData: {
       userId: string;
@@ -167,7 +159,6 @@ export class NotificationService {
   ): Promise<INotification> {
     const notification = await this.createNotification(notificationData);
     
-    // Émettre la notification en temps réel si une fonction d'émission est fournie
     if (emitFunction) {
       const notificationForClient: NotificationResponse = {
         _id: notification._id.toString(),
@@ -194,7 +185,6 @@ export class NotificationService {
     return notification;
   }
 
-  // Méthode utilitaire pour formater une notification pour le client
   static formatNotificationForClient(notification: INotification): NotificationResponse {
     return {
       _id: notification._id.toString(),
@@ -216,7 +206,6 @@ export class NotificationService {
     };
   }
 
-  // Méthode spécifique pour les notifications d'action
   static async createActionNotification(
     userId: string,
     title: string,

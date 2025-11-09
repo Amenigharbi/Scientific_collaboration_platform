@@ -15,7 +15,6 @@ export async function GET() {
 
     await connectToDatabase();
 
-    // Vérifier que l'userId est valide
     if (!Types.ObjectId.isValid(session.user.id)) {
       return NextResponse.json({ error: 'ID utilisateur invalide' }, { status: 400 });
     }
@@ -32,7 +31,6 @@ export async function GET() {
       read: false
     });
 
-    // Interface pour la notification transformée
     interface TransformedNotification {
       _id: string;
       userId: string;

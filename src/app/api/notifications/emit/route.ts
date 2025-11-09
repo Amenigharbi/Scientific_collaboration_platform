@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { type, title, message, metadata, targetUserId } = body;
 
-    // Utiliser l'utilisateur courant si targetUserId n'est pas spécifié
     const userId = targetUserId || session.user.id;
 
     const event = {
@@ -26,7 +25,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     };
 
-    const success = await emitEventToUser(userId, event);
+    const success = emitEventToUser(userId, event);
 
     return NextResponse.json({ 
       success,

@@ -5,13 +5,10 @@ import { connectToDatabase } from '@/app/lib/mongodb';
 import Notification from '@/app/models/Notification';
 import { Types } from 'mongoose';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -21,9 +18,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     await connectToDatabase();
 
-    const { id } = params;
+    const { id } = await params;
 
-    // Vérifier que les IDs sont valides
     if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(session.user.id)) {
       return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
     }
@@ -59,7 +55,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -68,8 +67,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await connectToDatabase();
-
-    const { id } = params;
+    const { id } = await params;
 
     if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(session.user.id)) {
       return NextResponse.json({ error: 'ID invalide' }, { status: 400 });

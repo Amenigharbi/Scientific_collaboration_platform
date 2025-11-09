@@ -84,6 +84,21 @@ const UserSchema = new mongoose.Schema({
       min: 0
     },
   },
+  preferences: {
+    emailNotifications: { type: Boolean, default: true },
+    projectNotifications: { type: Boolean, default: true },
+    collaborationNotifications: { type: Boolean, default: true },
+    darkMode: { type: Boolean, default: false },
+    publicProfile: { type: Boolean, default: true },
+    activityVisible: { type: Boolean, default: true },
+    defaultProjectVisibility: { 
+      type: String, 
+      enum: ['PRIVATE', 'INSTITUTION', 'PUBLIC'],
+      default: 'INSTITUTION'
+    },
+    language: { type: String, default: 'fr' },
+    timezone: { type: String, default: 'Europe/Paris' }
+  }
 }, {
   timestamps: true,
 });
