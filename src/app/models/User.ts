@@ -1,47 +1,91 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IUser extends Document {
-  name: string;
-  email: string;
-  orcid: string;
-  institution: string;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const UserSchema: Schema = new Schema(
-  {
-    name: {
-      type: String,
-      required: true,
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Le nom est obligatoire'],
+    trim: true,
+    minlength: [2, 'Le nom doit contenir au moins 2 caractères'],
+    maxlength: [100, 'Le nom ne peut pas dépasser 100 caractères']
+  },
+  email: {
+    type: String,
+    required: [true, 'L\'email est obligatoire'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email invalide']
+  },
+  password: {
+    type: String,
+    required: [true, 'Le mot de passe est obligatoire'],
+    select: false,
+  },
+  institution: {
+    type: String,
+    required: [true, 'L\'institution est obligatoire'],
+    trim: true,
+    minlength: [2, 'Le nom de l\'institution doit contenir au moins 2 caractères'],
+    maxlength: [200, 'Le nom de l\'institution ne peut pas dépasser 200 caractères']
+  },
+  avatar: {
+    type: String,
+    default: null,
+  },
+  orcid: {
+    type: String,
+    trim: true,
+    default: '',
+    match: [/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/, 'Format ORCID invalide']
+  },
+  specialization: {
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: [200, 'La spécialisation ne peut pas dépasser 200 caractères']
+  },
+  bio: {
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: [1000, 'La biographie ne peut pas dépasser 1000 caractères']
+  },
+  website: {
+    type: String,
+    trim: true,
+    default: '',
+    match: [/^https?:\/\/.+\..+/, 'URL invalide']
+  },
+  location: {
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: [100, 'La localisation ne peut pas dépasser 100 caractères']
+  },
+  stats: {
+    projectsCreated: {
+      type: Number,
+      default: 0,
+      min: 0
     },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
+    projectsCollaborated: {
+      type: Number,
+      default: 0,
+      min: 0
     },
-    orcid: {
-      type: String,
-      unique: true,
-      sparse: true,
-
+    documentsUploaded: {
+      type: Number,
+      default: 0,
+      min: 0
     },
-    institution: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      default: 'researcher',
+    totalContributions: {
+      type: Number,
+      default: 0,
+      min: 0
     },
   },
-  {
-    timestamps: true,
-  }
-);
+}, {
+  timestamps: true,
+});
 
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ orcid: 1 }, { unique: true, sparse: true });
-
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+export default mongoose.models.User || mongoose.model('User', UserSchema);

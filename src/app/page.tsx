@@ -50,7 +50,6 @@ export default function SignIn() {
     setError('');
 
     if (isSignUp) {
-      // Mode inscription
       if (formData.password !== formData.confirmPassword) {
         setError('Les mots de passe ne correspondent pas');
         setIsLoading(false);
@@ -78,7 +77,6 @@ export default function SignIn() {
           throw new Error(data.error || 'Erreur lors de la création du compte');
         }
 
-        // Après l'inscription, connecter l'utilisateur automatiquement
         const result = await signIn('credentials', {
           email: formData.email,
           password: formData.password,
@@ -91,7 +89,6 @@ export default function SignIn() {
           return;
         }
 
-        // Redirection vers le dashboard
         router.push('/dashboard');
         
       } catch (error: any) {
@@ -114,7 +111,6 @@ export default function SignIn() {
           return;
         }
 
-        // Redirection vers le dashboard
         router.push('/dashboard');
         
       } catch (error) {
@@ -130,18 +126,17 @@ export default function SignIn() {
       ...formData,
       [e.target.name]: e.target.value
     });
-    // Effacer l'erreur quand l'utilisateur modifie un champ
     if (error) setError('');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 flex items-center justify-center p-4">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
         {/* Section gauche - Présentation */}
         <div className="text-center lg:text-left space-y-8">
           <div className="flex items-center justify-center lg:justify-start space-x-4">
-            <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 bg-linear-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
               <FiAward className="w-7 h-7 text-white" />
             </div>
             <div>
@@ -153,7 +148,7 @@ export default function SignIn() {
           <div className="space-y-6">
             <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
               Collaborez, 
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> innovez</span>, 
+              <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> innovez</span>, 
               publiez
             </h2>
             
@@ -372,7 +367,7 @@ export default function SignIn() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full bg-linear-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">

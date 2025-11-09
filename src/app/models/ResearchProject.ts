@@ -59,7 +59,6 @@ const ResearchProjectSchema = new Schema<IResearchProject>(
   }
 );
 
-// Index pour les performances
 ResearchProjectSchema.index({ owner: 1, createdAt: -1 });
 ResearchProjectSchema.index({ visibility: 1 });
 ResearchProjectSchema.index({ status: 1 });
