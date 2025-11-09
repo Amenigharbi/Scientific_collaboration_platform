@@ -6,14 +6,12 @@ export async function GET() {
   try {
     const { conn } = await connectToDatabase();
     
-    // Vérification que la connexion et la db sont définies
     if (!conn || !conn.connection.db) {
       throw new Error('Database connection is not established');
     }
     
     const db = conn.connection.db;
     
-    // Test supplémentaire : créer une collection test
     const testCollection = db.collection('test_connection');
     await testCollection.insertOne({ 
       test: true, 

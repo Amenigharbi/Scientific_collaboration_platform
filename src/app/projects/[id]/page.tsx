@@ -19,13 +19,24 @@ import {
   FiAward,
   FiClock,
   FiAlertTriangle,
-  FiHome
+  FiHome,
+
 } from 'react-icons/fi';
 import InviteCollaboratorModal from '@/app/components/InviteCollaboratorModal';
 import DocumentManager from '@/app/components/DocumentManager';
 import ProjectTimeline from '@/app/components/ProjectTimeline';
-import QuickChat from '@/app/components/QuickChat';
 import NotificationCenter from '@/app/components/NotificationCenter';
+
+
+interface Attachment {
+  _id: string;
+  filename: string;
+  originalName: string;
+  mimetype: string;
+  size: number;
+  url: string;
+  uploadedAt: string;
+}
 
 interface Project {
   _id: string;
@@ -56,6 +67,8 @@ interface Project {
   updatedAt: string;
 }
 
+
+
 export default function ProjectDetail() {
   const { data: session } = useSession();
   const params = useParams();
@@ -66,8 +79,9 @@ export default function ProjectDetail() {
   const [copied, setCopied] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
- const projectId = params?.id as string;
+  const projectId = params?.id as string;
 
   useEffect(() => {
     if (projectId) {
@@ -93,7 +107,7 @@ export default function ProjectDetail() {
     }
   };
 
-   const handleEdit = () => {
+  const handleEdit = () => {
     if (!projectId) return;
     router.push(`/projects/edit/${projectId}`);
   };
@@ -103,7 +117,7 @@ export default function ProjectDetail() {
     setShowMobileMenu(false);
   };
 
-   const handleInviteSent = () => {
+  const handleInviteSent = () => {
     if (projectId) {
       fetchProject(projectId);
     }
@@ -150,6 +164,7 @@ export default function ProjectDetail() {
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -286,6 +301,8 @@ export default function ProjectDetail() {
 
                   <NotificationCenter />
 
+                
+
                   <button
                     onClick={copyProjectLink}
                     className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50 backdrop-blur-sm"
@@ -338,6 +355,8 @@ export default function ProjectDetail() {
 
                   <NotificationCenter />
 
+              
+
                   <button
                     onClick={copyProjectLink}
                     className="flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50"
@@ -356,14 +375,14 @@ export default function ProjectDetail() {
                         <FiMoreVertical className="w-5 h-5" />
                       </button>
                       
-                    {showMobileMenu && (
-  <>
-    <div 
-      className="fixed inset-0 z-100"
-      onClick={() => setShowMobileMenu(false)}
-    />
-    
-    <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-100 min-w-48 max-w-[calc(100vw-2rem)] transform transition-all duration-200">
+                      {showMobileMenu && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-50"
+                            onClick={() => setShowMobileMenu(false)}
+                          />
+                          
+                          <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50 min-w-48 max-w-[calc(100vw-2rem)] transform transition-all duration-200">
                             <button
                               onClick={() => {
                                 handleInvite();
@@ -433,7 +452,7 @@ export default function ProjectDetail() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-3 space-y-6">
-              <div className=" rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className="rounded-2xl shadow-lg border border-white/20 p-6">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Description détaillée</h2>
                 <p className="text-slate-700 leading-relaxed whitespace-pre-line">{project.description}</p>
               </div>
@@ -507,74 +526,77 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                  <FiUser className="w-5 h-5 text-blue-500" />
-                  <span>Propriétaire</span>
-                </h3>
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                    {project.owner.name?.charAt(0)?.toUpperCase() || 'U'}
+            {!showChat && (
+              <div className="space-y-6">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                    <FiUser className="w-5 h-5 text-blue-500" />
+                    <span>Propriétaire</span>
+                  </h3>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                      {project.owner.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{project.owner.name}</p>
+                      <p className="text-sm text-slate-500 truncate">{project.owner.email}</p>
+                      {project.owner.affiliation && (
+                        <p className="text-sm text-slate-500 truncate">{project.owner.affiliation}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{project.owner.name}</p>
-                    <p className="text-sm text-slate-500 truncate">{project.owner.email}</p>
-                    {project.owner.affiliation && (
-                      <p className="text-sm text-slate-500 truncate">{project.owner.affiliation}</p>
+                </div>
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                    <FiTag className="w-5 h-5 text-emerald-500" />
+                    <span>Mots-clés</span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags && project.tags.length > 0 ? (
+                      project.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex px-3 py-1 text-sm bg-linear-to-r from-emerald-100 to-blue-100 text-slate-700 rounded-full border border-emerald-200/50"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-slate-500 text-sm">Aucun mot-clé</p>
                     )}
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                  <FiTag className="w-5 h-5 text-emerald-500" />
-                  <span>Mots-clés</span>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.tags && project.tags.length > 0 ? (
-                    project.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex px-3 py-1 text-sm bg-linear-to-r from-emerald-100 to-blue-100 text-slate-700 rounded-full border border-emerald-200/50"
-                      >
-                        {tag}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-slate-500 text-sm">Aucun mot-clé</p>
-                  )}
-                </div>
-              </div>
-
-              {project.collaborators && project.collaborators.length > 0 && (
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                    <FiUsers className="w-5 h-5 text-purple-500" />
-                    <span>Collaborateurs ({project.collaborators.length})</span>
-                  </h3>
-                  <div className="space-y-3">
-                    {project.collaborators.map((collab, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-linear-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                          {collab.user.name?.charAt(0)?.toUpperCase() || 'C'}
+                {project.collaborators && project.collaborators.length > 0 && (
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                    <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                      <FiUsers className="w-5 h-5 text-purple-500" />
+                      <span>Collaborateurs ({project.collaborators.length})</span>
+                    </h3>
+                    <div className="space-y-3">
+                      {project.collaborators.map((collab, index) => (
+                        <div key={index} className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-linear-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                            {collab.user.name?.charAt(0)?.toUpperCase() || 'C'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate">{collab.user.name}</p>
+                            <p className="text-xs text-slate-500 truncate">{collab.role}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-900 truncate">{collab.user.name}</p>
-                          <p className="text-xs text-slate-500 truncate">{collab.role}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <QuickChat projectId={project._id} />
-            </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
+
+ 
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

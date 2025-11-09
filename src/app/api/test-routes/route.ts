@@ -18,7 +18,6 @@ export async function GET() {
 
     await connectToDatabase();
 
-    // Test de création de projet
     const testProject = await ResearchProject.create({
       title: 'Projet Test API',
       description: 'Ceci est un projet de test pour les API routes',

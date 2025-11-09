@@ -1,6 +1,6 @@
 'use client';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   FiPlus, 
@@ -18,8 +18,14 @@ import {
   FiFilter,
   FiAward,
   FiActivity,
-  FiAlertTriangle
+  FiAlertTriangle,
+  FiLogOut,
+  FiUser,
+  FiChevronDown,
+  FiMessageSquare,
+  FiX as FiClose
 } from 'react-icons/fi';
+import QuickChat from '@/app/components/QuickChat';
 
 interface Project {
   _id: string;
@@ -79,6 +85,25 @@ export default function Dashboard() {
     totalCollaborations: 0,
     pendingInvitations: 0,
   });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedProjectTitle, setSelectedProjectTitle] = useState<string>('');
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -115,8 +140,6 @@ export default function Dashboard() {
       pendingInvitations
     });
   };
-
-
 
   const handleAcceptCollaboration = async (collabId: string) => {
     try {
@@ -190,7 +213,28 @@ export default function Dashboard() {
     }
   };
 
-  // Filtrage des données
+  const openChat = (projectId: string, projectTitle?: string) => {
+    setSelectedProjectId(projectId);
+    setSelectedProjectTitle(projectTitle || '');
+    setChatOpen(true);
+  };
+
+  const closeChat = () => {
+    setChatOpen(false);
+    setSelectedProjectId('');
+    setSelectedProjectTitle('');
+  };
+
+  const toggleChat = () => {
+    if (projects.length > 0) {
+      if (chatOpen) {
+        closeChat();
+      } else {
+        openChat(projects[0]._id, projects[0].title);
+      }
+    }
+  };
+
   const filteredProjects = projects.filter(project => {
     const matchesSearch = 
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -233,16 +277,6 @@ export default function Dashboard() {
     }
   };
 
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'PROJECT_CREATED': return 'bg-green-500';
-      case 'FILE_UPLOADED': return 'bg-blue-500';
-      case 'COLLABORATOR_ADDED': return 'bg-purple-500';
-      case 'COMMENT_ADDED': return 'bg-amber-500';
-      default: return 'bg-slate-500';
-    }
-  };
-
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
@@ -271,18 +305,70 @@ export default function Dashboard() {
                 <p className="text-slate-600">Bienvenue, {session.user?.name}!</p>
               </div>
             </div>
-            <Link
-              href="/projects/new"
-              className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
-            >
-              <FiPlus className="w-5 h-5" />
-              <span>Nouveau Projet</span>
-            </Link>
+            
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/projects/new"
+                className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+              >
+                <FiPlus className="w-5 h-5" />
+                <span>Nouveau Projet</span>
+              </Link>
+
+             
+
+              {/* Menu utilisateur */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center space-x-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2 hover:bg-white/70 transition-all duration-200"
+                >
+                  <div className="w-8 h-8 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                    {session.user?.name?.charAt(0) || session.user?.email?.charAt(0) || 'U'}
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-slate-900">{session.user?.name}</p>
+                    <p className="text-xs text-slate-600">{session.user?.email}</p>
+                  </div>
+                  <FiChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Menu déroulant */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-white/20">
+                      <p className="text-sm font-medium text-slate-900">{session.user?.name}</p>
+                      <p className="text-xs text-slate-600 truncate">{session.user?.email}</p>
+                    </div>
+                    
+                    <Link
+                      href="/profile"
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <FiUser className="w-4 h-4" />
+                      <span>Mon Profil</span>
+                    </Link>
+                    
+                    <button
+                      onClick={() => {
+                        signOut({ callbackUrl: '/' });
+                        setUserMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors w-full text-left"
+                    >
+                      <FiLogOut className="w-4 h-4" />
+                      <span>Déconnexion</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="bg-white/70 backdrop-blur-xl border-b border-white/20">
+      <div className="bg-white/70 border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
@@ -310,7 +396,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={`max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${
+        chatOpen ? 'lg:pr-[500px]' : ''
+      }`}>
         <div className="mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative max-w-md w-full">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -414,12 +502,21 @@ export default function Dashboard() {
                   {projects.slice(0, 5).map((project) => (
                     <div key={project._id} className="flex items-center justify-between py-3 border-b border-white/20 last:border-0">
                       <div className="flex-1">
-                        <Link 
-                          href={`/projects/${project._id}`}
-                          className="font-medium text-slate-900 hover:text-blue-600 transition-colors"
-                        >
-                          {project.title}
-                        </Link>
+                        <div className="flex items-center space-x-3">
+                          <Link 
+                            href={`/projects/${project._id}`}
+                            className="font-medium text-slate-900 hover:text-blue-600 transition-colors"
+                          >
+                            {project.title}
+                          </Link>
+                          <button
+                            onClick={() => openChat(project._id, project.title)}
+                            className="p-1 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Ouvrir le chat"
+                          >
+                            <FiMessageSquare className="w-4 h-4" />
+                          </button>
+                        </div>
                         <p className="text-sm text-slate-500 truncate">{project.description}</p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -479,7 +576,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
           </>
         ) : activeTab === 'projects' ? (
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
@@ -532,6 +628,13 @@ export default function Dashboard() {
                               >
                                 {project.title}
                               </Link>
+                              <button
+                                onClick={() => openChat(project._id, project.title)}
+                                className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                title="Ouvrir le chat du projet"
+                              >
+                                <FiMessageSquare className="w-4 h-4" />
+                              </button>
                               <span className={`px-2 py-1 text-xs rounded-full border ${getStatusColor(project.status)}`}>
                                 {getStatusLabel(project.status)}
                               </span>
@@ -676,6 +779,41 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Chat Sidebar */}
+      {chatOpen && (
+        <div className="fixed right-0 top-0 h-full w-96 bg-white/95 backdrop-blur-xl shadow-2xl border-l border-slate-200/50 z-40">
+          <div className="h-full flex flex-col">
+            {/* Header de la sidebar */}
+            <div className="bg-linear-to-r from-slate-50 to-slate-100/50 border-b border-slate-200/50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900">Chat</h3>
+                  {selectedProjectTitle && (
+                    <p className="text-sm text-slate-600 truncate max-w-[200px]">
+                      {selectedProjectTitle}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={closeChat}
+                  className="p-2 text-slate-500 hover:text-slate-700 hover:bg-white rounded-lg transition-all duration-200"
+                  title="Fermer le chat"
+                >
+                  <FiClose className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <QuickChat 
+                projectId={selectedProjectId} 
+                className="h-full rounded-none shadow-none border-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteConfirm.show && deleteConfirm.project && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

@@ -14,7 +14,6 @@ export async function GET() {
   try {
     await connectToDatabase();
     
-    // Compter les documents dans chaque collection
     const userCount = await User.countDocuments();
     const projectCount = await ResearchProject.countDocuments();
     const versionCount = await ProjectVersion.countDocuments();

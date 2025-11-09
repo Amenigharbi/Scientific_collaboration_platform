@@ -1,4 +1,3 @@
-// models/User.ts - VERSION RECOMMANDÉE
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
@@ -26,7 +25,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       unique: true,
       sparse: true,
-      // Pas de "index: true" ici
+
     },
     institution: {
       type: String,
