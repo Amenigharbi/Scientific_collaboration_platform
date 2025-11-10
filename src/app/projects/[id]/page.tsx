@@ -19,24 +19,14 @@ import {
   FiAward,
   FiClock,
   FiAlertTriangle,
-  FiHome,
-
+  FiMessageSquare,
+  FiX
 } from 'react-icons/fi';
 import InviteCollaboratorModal from '@/app/components/InviteCollaboratorModal';
 import DocumentManager from '@/app/components/DocumentManager';
 import ProjectTimeline from '@/app/components/ProjectTimeline';
 import NotificationCenter from '@/app/components/NotificationCenter';
-
-
-interface Attachment {
-  _id: string;
-  filename: string;
-  originalName: string;
-  mimetype: string;
-  size: number;
-  url: string;
-  uploadedAt: string;
-}
+import QuickChat from '@/app/components/QuickChat';
 
 interface Project {
   _id: string;
@@ -66,8 +56,6 @@ interface Project {
   createdAt: string;
   updatedAt: string;
 }
-
-
 
 export default function ProjectDetail() {
   const { data: session } = useSession();
@@ -165,6 +153,10 @@ export default function ProjectDetail() {
     });
   };
 
+  const toggleChat = () => {
+    setShowChat(!showChat);
+    setShowMobileMenu(false);
+  };
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -228,6 +220,110 @@ export default function ProjectDetail() {
     }
   };
 
+  const OwnerActions = () => (
+    <div className="flex items-center space-x-2">
+      <button 
+        onClick={handleInvite}
+        className="flex items-center space-x-2 bg-linear-to-r from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+        title="Inviter des collaborateurs"
+      >
+        <FiUsers className="w-5 h-5" />
+      </button>
+      <button 
+        onClick={handleEdit}
+        className="flex items-center space-x-2 bg-linear-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+        title="Modifier le projet"
+      >
+        <FiEdit3 className="w-5 h-5" />
+      </button>
+    </div>
+  );
+
+  const SecondaryActions = () => (
+    <div className="relative">
+      <button
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50 border border-slate-200/50"
+        title="Plus d'actions"
+      >
+        <FiMoreVertical className="w-5 h-5" />
+      </button>
+      
+      {showMobileMenu && (
+        <>
+          <div 
+            className="fixed inset-0 z-50"
+            onClick={() => setShowMobileMenu(false)}
+          />
+          
+          <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50 min-w-48">
+            <div className="px-3 py-2">
+              <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Communication</span>
+            </div>
+            
+            <button
+              onClick={() => {
+                toggleChat();
+                setShowMobileMenu(false);
+              }}
+              className="flex items-center space-x-3 w-full px-4 py-3 text-slate-700 hover:bg-slate-50/80 transition-colors text-left"
+            >
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                showChat ? 'bg-linear-to-r from-green-500 to-teal-600' : 'bg-slate-100'
+              }`}>
+                <FiMessageSquare className={`w-4 h-4 ${showChat ? 'text-black' : 'text-slate-800'}`} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-medium block truncate">Chat</span>
+                <span className="text-xs text-slate-800 truncate">{showChat ? 'Masquer' : 'Ouvrir'}</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                copyProjectLink();
+                setShowMobileMenu(false);
+              }}
+              className="flex items-center space-x-3 w-full px-4 py-3 text-slate-700 hover:bg-slate-50/80 transition-colors text-left"
+            >
+              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
+                <FiShare2 className="w-4 h-4 text-slate-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-medium block truncate">Partager</span>
+                <span className="text-xs text-slate-500 truncate">Copier le lien</span>
+              </div>
+            </button>
+
+            {isOwner && (
+              <>
+                <div className="border-t border-slate-200/50 mx-3 my-2"></div>
+                <div className="px-3 py-2">
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Administration</span>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    confirmDelete();
+                  }}
+                  className="flex items-center space-x-3 w-full px-4 py-3 text-rose-700 hover:bg-rose-50/80 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 bg-linear-to-r from-rose-500 to-pink-600 rounded-lg flex items-center justify-center shrink-0">
+                    <FiTrash2 className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium block truncate">Supprimer</span>
+                    <span className="text-xs text-rose-500 truncate">Action irréversible</span>
+                  </div>
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 flex items-center justify-center">
@@ -270,17 +366,17 @@ export default function ProjectDetail() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1 min-w-0">
                   <button
                     onClick={() => router.back()}
-                    className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors p-2 rounded-xl hover:bg-white/50"
+                    className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors p-2 rounded-xl hover:bg-white/50 border border-slate-200/50 shrink-0"
                   >
                     <FiArrowLeft className="w-5 h-5" />
                   </button>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
                       <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 truncate">{project.title}</h1>
-                      <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium bg-linear-to-r ${statusInfo.color} shadow-sm mt-2 sm:mt-0`}>
+                      <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium bg-linear-to-r ${statusInfo.color} shadow-sm mt-2 sm:mt-0 border border-white/20 shrink-0`}>
                         {statusInfo.icon}
                         <span>{statusInfo.label}</span>
                       </span>
@@ -289,160 +385,30 @@ export default function ProjectDetail() {
                   </div>
                 </div>
                 
-                <div className="hidden lg:flex items-center space-x-3">
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50 backdrop-blur-sm"
-                    title="Retour au Dashboard"
-                  >
-                    <FiHome className="w-5 h-5" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </button>
-
+                <div className="hidden lg:flex items-center space-x-3 shrink-0">
                   <NotificationCenter />
-
-                
-
-                  <button
-                    onClick={copyProjectLink}
-                    className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50 backdrop-blur-sm"
-                  >
-                    {copied ? <FiCheck className="w-5 h-5 text-emerald-600" /> : <FiShare2 className="w-5 h-5" />}
-                    <span className="hidden sm:inline">{copied ? 'Copié!' : 'Partager'}</span>
-                  </button>
                   
-                  {isOwner && (
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={handleInvite}
-                        className="flex items-center space-x-2 bg-linear-to-r from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-                      >
-                        <FiUsers className="w-5 h-5" />
-                        <span className="hidden sm:inline">Inviter</span>
-                      </button>
-                      <button 
-                        onClick={handleEdit}
-                        className="flex items-center space-x-2 bg-linear-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-                      >
-                        <FiEdit3 className="w-5 h-5" />
-                        <span className="hidden sm:inline">Éditer</span>
-                      </button>
-                      <button 
-                        onClick={confirmDelete}
-                        className="flex items-center space-x-2 bg-linear-to-r from-rose-500 to-pink-600 text-white px-4 py-2 rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-                      >
-                        <FiTrash2 className="w-5 h-5" />
-                        <span className="hidden sm:inline">Supprimer</span>
-                      </button>
-                    </div>
-                  )}
-                  {!isOwner && (
-                    <span className="text-sm text-slate-600 px-4 py-2 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20">
-                      Collaborateur
-                    </span>
-                  )}
-                </div>
-
-                {/* Actions Mobile */}
-                <div className="lg:hidden flex items-center space-x-2">
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50"
-                    title="Dashboard"
-                  >
-                    <FiHome className="w-5 h-5" />
-                  </button>
-
-                  <NotificationCenter />
-
-              
-
-                  <button
-                    onClick={copyProjectLink}
-                    className="flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50"
-                  >
-                    {copied ? <FiCheck className="w-5 h-5 text-emerald-600" /> : <FiShare2 className="w-5 h-5" />}
-                  </button>
+                  {isOwner && <OwnerActions />}
                   
-                  {isOwner && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowMobileMenu(!showMobileMenu)}
-                        className={`flex items-center p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-xl hover:bg-white/50 ${
-                          showMobileMenu ? 'bg-white/50' : ''
-                        }`}
-                      >
-                        <FiMoreVertical className="w-5 h-5" />
-                      </button>
-                      
-                      {showMobileMenu && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-50"
-                            onClick={() => setShowMobileMenu(false)}
-                          />
-                          
-                          <div className="fixed right-4 top-20 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50 min-w-48 max-w-[calc(100vw-2rem)] transform transition-all duration-200">
-                            <button
-                              onClick={() => {
-                                handleInvite();
-                                setShowMobileMenu(false);
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-3 text-slate-700 hover:bg-slate-50/80 transition-colors text-left"
-                            >
-                              <div className="w-8 h-8 bg-linear-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0">
-                                <FiUsers className="w-4 h-4 text-white" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="font-medium block truncate">Inviter</span>
-                                <span className="text-xs text-slate-500 truncate">Ajouter un collaborateur</span>
-                              </div>
-                            </button>
-                            
-                            <div className="border-t border-slate-200/50 mx-3 my-1"></div>
-                            
-                            <button
-                              onClick={() => {
-                                handleEdit();
-                                setShowMobileMenu(false);
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-3 text-slate-700 hover:bg-slate-50/80 transition-colors text-left"
-                            >
-                              <div className="w-8 h-8 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
-                                <FiEdit3 className="w-4 h-4 text-white" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="font-medium block truncate">Éditer</span>
-                                <span className="text-xs text-slate-500 truncate">Modifier le projet</span>
-                              </div>
-                            </button>
-                            
-                            <div className="border-t border-slate-200/50 mx-3 my-1"></div>
-                            
-                            <button
-                              onClick={() => {
-                                confirmDelete();
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-3 text-rose-700 hover:bg-rose-50/80 transition-colors text-left"
-                            >
-                              <div className="w-8 h-8 bg-linear-to-r from-rose-500 to-pink-600 rounded-lg flex items-center justify-center shrink-0">
-                                <FiTrash2 className="w-4 h-4 text-white" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="font-medium block truncate">Supprimer</span>
-                                <span className="text-xs text-rose-500 truncate">Action irréversible</span>
-                              </div>
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
                   {!isOwner && (
                     <span className="text-sm text-slate-600 px-3 py-2 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20">
                       Collaborateur
                     </span>
                   )}
+                  
+                  <SecondaryActions />
+                </div>
+
+                <div className="lg:hidden flex items-center space-x-2 shrink-0">
+                  <NotificationCenter />
+                  
+                  {!isOwner && (
+                    <span className="text-sm text-slate-600 px-2 py-1 bg-white/50 backdrop-blur-sm rounded-lg border border-white/20">
+                      Collaborateur
+                    </span>
+                  )}
+                  
+                  <SecondaryActions />
                 </div>
               </div>
             </div>
@@ -451,6 +417,7 @@ export default function ProjectDetail() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Colonne principale - Toujours pleine largeur */}
             <div className="lg:col-span-3 space-y-6">
               <div className="rounded-2xl shadow-lg border border-white/20 p-6">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Description détaillée</h2>
@@ -526,77 +493,89 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            {!showChat && (
-              <div className="space-y-6">
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                    <FiUser className="w-5 h-5 text-blue-500" />
-                    <span>Propriétaire</span>
-                  </h3>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                      {project.owner.name?.charAt(0)?.toUpperCase() || 'U'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{project.owner.name}</p>
-                      <p className="text-sm text-slate-500 truncate">{project.owner.email}</p>
-                      {project.owner.affiliation && (
-                        <p className="text-sm text-slate-500 truncate">{project.owner.affiliation}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+            <div className="space-y-6">
+           {showChat && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] relative">
+                 <QuickChat 
+                    projectId={project._id} 
+                     className="h-full"
+                />
+            <button
+                 onClick={() => setShowChat(false)}
+                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors z-10"
+            >
+             <FiX className="w-6 h-6" />
+            </button>
+            </div>
+            </div>
+            )}
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                    <FiTag className="w-5 h-5 text-emerald-500" />
-                    <span>Mots-clés</span>
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tags && project.tags.length > 0 ? (
-                      project.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex px-3 py-1 text-sm bg-linear-to-r from-emerald-100 to-blue-100 text-slate-700 rounded-full border border-emerald-200/50"
-                        >
-                          {tag}
-                        </span>
-                      ))
-                    ) : (
-                      <p className="text-slate-500 text-sm">Aucun mot-clé</p>
+              <div className="bg-white/70  rounded-2xl shadow-lg border border-white/20 p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                  <FiUser className="w-5 h-5 text-blue-500" />
+                  <span>Propriétaire</span>
+                </h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-linear-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                    {project.owner.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 truncate">{project.owner.name}</p>
+                    <p className="text-sm text-slate-500 truncate">{project.owner.email}</p>
+                    {project.owner.affiliation && (
+                      <p className="text-sm text-slate-500 truncate">{project.owner.affiliation}</p>
                     )}
                   </div>
                 </div>
-
-                {project.collaborators && project.collaborators.length > 0 && (
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-                    <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-                      <FiUsers className="w-5 h-5 text-purple-500" />
-                      <span>Collaborateurs ({project.collaborators.length})</span>
-                    </h3>
-                    <div className="space-y-3">
-                      {project.collaborators.map((collab, index) => (
-                        <div key={index} className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-linear-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                            {collab.user.name?.charAt(0)?.toUpperCase() || 'C'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate">{collab.user.name}</p>
-                            <p className="text-xs text-slate-500 truncate">{collab.role}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
               </div>
-            )}
+
+              <div className="bg-white/70 rounded-2xl shadow-lg border border-white/20 p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                  <FiTag className="w-5 h-5 text-emerald-500" />
+                  <span>Mots-clés</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {project.tags && project.tags.length > 0 ? (
+                    project.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex px-3 py-1 text-sm bg-linear-to-r from-emerald-100 to-blue-100 text-slate-700 rounded-full border border-emerald-200/50"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-slate-500 text-sm">Aucun mot-clé</p>
+                  )}
+                </div>
+              </div>
+
+              {project.collaborators && project.collaborators.length > 0 && (
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+                    <FiUsers className="w-5 h-5 text-purple-500" />
+                    <span>Collaborateurs ({project.collaborators.length})</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {project.collaborators.map((collab, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-linear-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                          {collab.user.name?.charAt(0)?.toUpperCase() || 'C'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{collab.user.name}</p>
+                          <p className="text-xs text-slate-500 truncate">{collab.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>
-
- 
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

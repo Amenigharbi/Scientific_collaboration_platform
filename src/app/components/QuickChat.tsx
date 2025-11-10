@@ -63,7 +63,6 @@ const MessageItem = React.memo(({ message, isOwn }: { message: Message; isOwn: b
         </div>
       </div>
 
-      {/* Message Bubble */}
       <div
         className={`rounded-2xl px-4 py-3 shadow-sm ${
           isOwn
@@ -73,7 +72,6 @@ const MessageItem = React.memo(({ message, isOwn }: { message: Message; isOwn: b
       >
         <p className="text-sm leading-relaxed whitespace-pre-wrap wrap-break-word">{message.content}</p>
         
-        {/* Attachments */}
         {message.attachments && message.attachments.length > 0 && (
           <div className="mt-3 space-y-2">
             {message.attachments.map((attachment) => (
@@ -97,7 +95,6 @@ const MessageItem = React.memo(({ message, isOwn }: { message: Message; isOwn: b
         )}
       </div>
 
-      {/* Status indicator */}
       {isOwn && (
         <div className="flex items-center gap-1 mt-1">
           <FiCheck className="w-3 h-3 text-green-500" />
@@ -300,7 +297,7 @@ export default function QuickChat({ projectId, className = '' }: QuickChatProps)
   };
 
   return (
-    <div className={`bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 overflow-hidden ${className}`}>
+    <div className={`bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden ${className}`}>
       <div className="bg-linear-to-r from-slate-50 to-slate-100/50 border-b border-slate-200/50 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -382,7 +379,6 @@ export default function QuickChat({ projectId, className = '' }: QuickChatProps)
         </div>
 
         <div className="border-t border-slate-200/50 bg-white p-6">
-          {/* File Previews */}
           {attachments.length > 0 && (
             <div className="mb-3 space-y-2">
               {attachments.map((attachment) => (
@@ -458,14 +454,14 @@ export default function QuickChat({ projectId, className = '' }: QuickChatProps)
                 onDrop={handleDrop}
               >
                 <textarea
-                  ref={textareaRef}
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Tapez votre message ou glissez-déposez des fichiers..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none min-h-12 max-h-32 text-sm placeholder-slate-400 transition-all duration-200"
-                  disabled={isSending}
-                  rows={1}
+                    ref={textareaRef}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Tapez votre message ou glissez-déposez des fichiers..."
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none min-h-12 max-h-32 text-sm placeholder-slate-400 transition-all duration-200 text-slate-900" // Ajout de text-slate-900
+                    disabled={isSending}
+                    rows={1}
                 />
               </div>
 
@@ -483,7 +479,7 @@ export default function QuickChat({ projectId, className = '' }: QuickChatProps)
               </button>
             </div>
 
-            <div className="flex justify-between items-center text-xs text-slate-500 px-1">
+            <div className="flex justify-between items-center text-xs text-slate-800 px-1">
               <span>
                 {formatMessageCount(messages.length)}
                 {attachments.length > 0 && ` • ${attachments.length} fichier(s)`}
